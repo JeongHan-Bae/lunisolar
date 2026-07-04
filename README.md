@@ -1,10 +1,16 @@
 # lunisolar
 
+[![CI](https://github.com/JeongHan-Bae/lunisolar/actions/workflows/ci.yaml/badge.svg?event=pull_request)](https://github.com/JeongHan-Bae/lunisolar/actions/workflows/ci.yaml?query=event%3Apull_request)
+
 `lunisolar` is a header-only C++20 library for converting between Gregorian dates and the Chinese lunisolar calendar.
+
+### Scope
 
 Here, `lunisolar` specifically means the Chinese lunisolar calendar, that is, the traditional Chinese calendar commonly
 called the Chinese lunar calendar (`nongli`). It does not mean a purely lunar calendar in the literal sense, such as the
 Islamic calendar.
+
+### Why "Lunisolar"
 
 For readers unfamiliar with the Latin roots, `lunisolar` literally means a calendar defined by both the moon and the
 sun: `luna` is the Latin root behind `moon`-related words, and `sol`/`solar` is the Latin root behind `sun`-related
@@ -17,12 +23,16 @@ cut apart, while the year as a whole stays close to the tropical year through in
 think of it as a calendar where each month fully covers a lunar-phase cycle, and each year oscillates around the solar
 year while preserving whole lunar months.
 
+### Standardization Target
+
 This library models the Chinese calendrical system standardized in Mainland China. In that sense, the Chinese lunisolar
 calendar and the traditional Chinese calendar it represents are treated here as part of traditional Chinese culture,
 implemented according to the modern Mainland Chinese standard `GB/T 33661-2017`.
 
 The author is only interested in the Gregorian calendar side of the mapping. Accordingly, this library only maps between
 Gregorian dates and the Chinese lunisolar calendar.
+
+### Supported Date Range
 
 This library does not support 1582 or earlier, does not support the Julian calendar or other older calendrical systems,
 and does not attempt historical back-calculation across pre-modern calendar regimes. It is not intended for historical
@@ -38,6 +48,8 @@ Chinese lunisolar years, not a bare Gregorian-year clamp. In Gregorian terms, th
 through `2227-02-16`, that is, from the first day of the first month of Chinese year `1715` through the last day of the
 last month of Chinese year `2226`.
 
+### Features
+
 It uses generated packed data tables and provides:
 
 - Gregorian ↔ Chinese lunisolar date conversion
@@ -52,9 +64,13 @@ It uses generated packed data tables and provides:
 The library follows the Mainland Chinese lunisolar standard `GB/T 33661-2017` and does not provide locale-specific
 calendar variants.
 
+### Time And Hour Handling
+
 For hour-based calculations, the library supports both direct local civil input such as `(gregorian_date, hour)` and UTC
 input plus a fixed `utc_offset`. The helper `local_hour(...)` extracts the local clock hour in the range `0..23`, which
 is then used by APIs such as hour Ganzhi and simplified Four Pillars.
+
+### Output Styles
 
 The output surface intentionally provides only four textual styles and one numeric style. The four textual styles are
 not four separate languages. They are two Hanzi writing forms and two pronunciation-based spellings for the same Hanzi
@@ -73,6 +89,8 @@ anchored to the Mainland Chinese calendrical standard `GB/T 33661-2017` and the 
 standard. The textual surface is limited to two Mainland Chinese Hanzi writing styles and two Hanzi-based pronunciation
 spellings. No further language, dialect, or locale expansion is provided.
 
+### Non-Goals
+
 In particular, translation is out of scope. The library does not support translation into other language systems,
 dialect writing systems, minority-language renderings, or historically reconstructed naming systems.
 
@@ -81,6 +99,8 @@ In short: no i18n.
 ## Checked APIs
 
 Checked conversion and lookup APIs return `lunisolar::result<T>`.
+
+### Error Model
 
 All core calendrical conversion, lookup, validation, local-time extraction, and Four Pillars computation APIs are
 declared `noexcept`.
