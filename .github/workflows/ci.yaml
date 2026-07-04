@@ -3,10 +3,10 @@ name: Cross-Platform CI
 on:
   push:
     branches:
-      - "*dev"
-      - "**/*dev"
       - "dev*"
-      - "**/dev*"
+      - "dev/**"
+      - "fix*"
+      - "fix/**"
     paths: &shared_paths
       - "CMakeLists.txt"
       - "include/lunisolar.h"
