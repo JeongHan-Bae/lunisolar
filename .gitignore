@@ -1,0 +1,50 @@
+include/lunisolar_data.h
+*.inc
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*~
+
+# Python
+__pycache__/
+.venv/
+venv/
+env/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+
+# C++ with GCC / LLVM
+*build*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+*.o
+*.a
+*.so
+*.dylib
+*.out
+*.d
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+*.dSYM/

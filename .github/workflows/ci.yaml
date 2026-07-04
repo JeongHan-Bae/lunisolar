@@ -1,0 +1,107 @@
+name: Cross-Platform CI
+
+on:
+  push:
+    branches:
+      - "*dev"
+      - "**/*dev"
+      - "dev*"
+      - "**/dev*"
+    paths: &shared_paths
+      - "CMakeLists.txt"
+      - "include/lunisolar.h"
+      - "tests/test_lunisolar.cpp"
+      - "tools/**"
+      - ".github/workflows/ci.yaml"
+
+  pull_request:
+    branches:
+      - main
+    paths: *shared_paths
+
+  workflow_dispatch:
+
+jobs:
+  ubuntu-gcc:
+    name: Linux (Ubuntu / GCC)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends cmake ninja-build g++
+
+      - name: Generate lunisolar data
+        run: |
+          rm -f include/lunisolar_data.h tests/lunisolar_vectors.inc tests/lunisolar_vectors_count.inc
+          bash tools/gen_lunisolar_data.sh
+
+      - name: Configure
+        run: cmake -S . -B build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build build-debug --verbose
+
+      - name: Run tests
+        run: ctest --test-dir build-debug --output-on-failure
+
+  macos-llvm:
+    name: Darwin (macOS / LLVM)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          brew update
+          for pkg in llvm cmake ninja; do
+            if ! brew list --versions "$pkg" >/dev/null; then
+              brew install "$pkg"
+            fi
+          done
+
+      - name: Show compiler version
+        run: |
+          /opt/homebrew/opt/llvm/bin/clang++ --version || true
+          /usr/local/opt/llvm/bin/clang++ --version || true
+
+      - name: Generate lunisolar data
+        run: |
+          rm -f include/lunisolar_data.h tests/lunisolar_vectors.inc tests/lunisolar_vectors_count.inc
+          bash tools/gen_lunisolar_data.sh
+
+      - name: Configure
+        run: |
+          if [[ "${RUNNER_ARCH}" == "ARM64" ]]; then
+            LLVM_PREFIX="/opt/homebrew/opt/llvm"
+          else
+            LLVM_PREFIX="/usr/local/opt/llvm"
+          fi
+          SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+
+          cmake -S . -B build-debug -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_OSX_SYSROOT="${SDKROOT}" \
+            -DCMAKE_CXX_COMPILER="${LLVM_PREFIX}/bin/clang++" \
+            -DCMAKE_CXX_FLAGS="-std=c++20 -stdlib=libc++ -isysroot ${SDKROOT}" \
+            -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -isysroot ${SDKROOT}"
+
+      - name: Build
+        run: cmake --build build-debug --verbose
+
+      - name: Run tests
+        run: ctest --test-dir build-debug --output-on-failure
