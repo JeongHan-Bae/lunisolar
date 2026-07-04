@@ -2,6 +2,23 @@
 
 This repository expects concise, disciplined English-only collaboration for commits and pull requests.
 
+## Branch Naming
+
+Use `dev` and `fix` as branch prefixes when work should trigger the CI workflow on push.
+
+Examples:
+
+```text
+dev/some-feature
+fix/cmake-minimum-version
+```
+
+Rules:
+
+- Use `dev/...` for development branches.
+- Use `fix/...` for bug-fix or CI-fix branches.
+- Keep the branch purpose clear and short after the prefix.
+
 ## Commit Message Format
 
 Please commit ONLY in English using the following format:
