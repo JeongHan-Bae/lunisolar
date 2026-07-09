@@ -1,8 +1,52 @@
-# lunisolar
+<h1 align="center">
+  <span>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/1/18/ISO_C%2B%2B_Logo.svg" 
+         alt="C++ Logo" 
+         width="64" valign="middle">
+  </span>
+  <span style="font-size: x-large;">&nbsp;lunisolar</span>
+</h1>
 
-[![CI](https://github.com/JeongHan-Bae/lunisolar/actions/workflows/ci.yaml/badge.svg?event=pull_request)](https://github.com/JeongHan-Bae/lunisolar/actions/workflows/ci.yaml?query=event%3Apull_request)
+<p align="center">
+  <img
+    src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/JeongHan-Bae/lunisolar/main/version_badge.json"
+    alt="badge"
+    width="196"
+  >
+</p>
 
-`lunisolar` is a header-only C++20 library for converting between Gregorian dates and the Chinese lunisolar calendar.
+<p align="center">
+  <a href="https://github.com/JeongHan-Bae/lunisolar/actions/workflows/ci.yaml?query=event%3Apull_request">
+    <img
+      src="https://github.com/JeongHan-Bae/lunisolar/actions/workflows/ci.yaml/badge.svg?event=pull_request"
+      alt="CI"
+      width="196"
+    >
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://zread.ai/JeongHan-Bae/lunisolar">
+    <img
+      src="https://img.shields.io/badge/Ask_Zread-_.svg?style=flat&color=00b0aa&labelColor=323232&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff"
+      alt="Ask Zread"
+      width="104"
+    >
+  </a>
+</p>
+
+<p align="center">
+  <img
+    src="https://img.shields.io/github/languages/top/JeongHan-Bae/lunisolar?style=flat&label=C%2B%2B&labelColor=323232&color=e85050"
+    alt="Top Language"
+    width="96"
+  >
+</p>
+
+<font size="5"><code>lunisolar</code></font> is a header-only C++20 library for converting between Gregorian dates and the Chinese lunisolar calendar.
+It is a backend-agnostic, fully precomputed calendar encoding system: the runtime library only decodes generated packed
+data, and `sxtwl` is just one optional generator backend for producing that dataset rather than a runtime dependency or
+the source of the library's core logic.
 
 ### Scope
 
@@ -47,6 +91,18 @@ The generated dataset included in this repository defaults to the inclusive Chin
 Chinese lunisolar years, not a bare Gregorian-year clamp. In Gregorian terms, the covered date span is `1715-02-04`
 through `2227-02-16`, that is, from the first day of the first month of Chinese year `1715` through the last day of the
 last month of Chinese year `2226`.
+
+## Data Model
+
+The C++ library is intentionally data-driven. Its runtime behavior comes from packed `lunisolar_data` tables generated
+ahead of time and compiled into the final binary. The calendar conversion logic in the header is therefore independent of
+any particular upstream library as long as the dataset is prepared in the expected format.
+
+This separation is deliberate:
+
+- runtime conversion depends only on precomputed packed data plus the C++ decoding logic
+- dataset generation can use any backend that can provide the required lunisolar dates, solar terms, and anchors
+- `sxtwl` is bundled only as one ready-made backend implementation for producing the repository's default dataset
 
 ### Features
 
@@ -123,28 +179,43 @@ within C++20.
 #include "lunisolar.h"
 #include "lunisolar_data.h"
 
-#include <cassert>
+#include <iostream>
 
 using Calendar = lunisolar::data::calendar;
 
 int main() {
     const auto result = Calendar::from_gregorian({2026, 2, 17});
-    assert(result); // equivalent to: assert(result.ec == lunisolar::error::none);
+    if (!result) {
+        std::cerr << "Failed to convert Gregorian date.\n";
+        return 1;
+    }
 
     const auto chinese = result.value;
-    assert(chinese.year == 2026);
-    assert(chinese.month == 1);
-    assert(chinese.day == 1);
-    assert(!chinese.leap); // true means this month instance is a leap month
+    std::cout << "Chinese date: "
+              << chinese.year
+              << '-'
+              << chinese.month
+              << '-'
+              << chinese.day
+              << (chinese.leap ? " (leap)\n" : "\n");
 
     const auto solar_term_result =
         Calendar::solar_term_date(2026, lunisolar::solar_term::lichun);
-    assert(solar_term_result);
+    if (!solar_term_result) {
+        std::cerr << "Failed to resolve Li-Chun.\n";
+        return 1;
+    }
 
     const auto lichun = solar_term_result.value;
-    assert(lichun.year == 2026);
-    assert(lichun.month == 2);
-    assert(lichun.day == 4);
+    std::cout << "Li-Chun: "
+              << lichun.year
+              << '-'
+              << lichun.month
+              << '-'
+              << lichun.day
+              << '\n';
+
+    return 0;
 }
 ```
 
@@ -155,15 +226,18 @@ lunisolar/
 ├── .github/
 │   └── workflows/
 │       └── ci.yaml           # GitHub Actions CI workflow
+├── examples/
+│   ├── birthdays.cpp         # example: map one Chinese birthday across many Chinese years
+│   └── solar_terms.cpp       # example: sample moon-phase-style output and nearby solar terms
 ├── include/
 │   └── lunisolar.h           # main header-only library interface
 ├── tests/
-│   └── test_lunisolar.cpp    # unit tests
+│   └── test_lunisolar.cpp    # tests proving packed data and runtime decoding stay faithful to the source data
 ├── tools/
-│   ├── calendar_source.py    # calendar data source generator interface
-│   ├── gen_lunisolar_data.py # lunisolar data generator
+│   ├── calendar_source.py    # calendar source interface required by the generator
+│   ├── gen_lunisolar_data.py # core backend-agnostic data packing and validation script
 │   ├── gen_lunisolar_data.sh # shell wrapper for data generation
-│   └── sxtwl_source.py       # realization of calendar_source using sxtwl library
+│   └── sxtwl_source.py       # optional CalendarSource implementation backed by sxtwl
 ├── .gitignore
 ├── AGENTS.md
 ├── CMakeLists.txt
@@ -186,6 +260,32 @@ defaults.
 
 Compared with the shell wrapper, `tools/gen_lunisolar_data.py` additionally supports passing explicit generation
 parameters such as the supported year range and output paths.
+
+## Generator Backends
+
+The Python generation pipeline is designed around a pluggable source interface rather than a hard dependency on `sxtwl`.
+`tools/calendar_source.py` defines the interface expected by the generator, and the core script
+`tools/gen_lunisolar_data.py` handles the packing, validation, and artifact emission once a source object satisfies that
+interface.
+
+In other words, the core script's job is data compression and validation. If a provided class can supply:
+
+- Gregorian-to-lunisolar conversion
+- solar-term dates
+- the day Ganzhi anchor information used by the generated dataset
+
+then the script can compress that source data into the packed format consumed by the C++ library. The bundled
+`tools/sxtwl_source.py` is only one implementation of that contract.
+
+## Tests
+
+The tests are intended to show two things:
+
+- the packed dataset generated by the Python tooling preserves the source calendar information faithfully
+- the C++ runtime decoding and conversion APIs behave consistently with that packed dataset
+
+This means the test suite is not just checking surface examples. It is also validating that the compression pipeline and
+the library's calculations remain faithful to the underlying source data used to generate the tables.
 
 ## License
 

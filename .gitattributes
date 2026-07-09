@@ -1,0 +1,4 @@
+# Ignore auxiliary directories from GitHub Linguist stats
+.github/** linguist-vendored
+scripts/** linguist-vendored
+docs/** linguist-vendored

@@ -1,0 +1,90 @@
+name: Update Version
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "include/lunisolar.h"
+      - "scripts/gen_version_badge.py"
+      - ".github/workflows/update-version.yaml"
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate version badge
+        run: python scripts/gen_version_badge.py
+
+      - name: Check if version files changed
+        id: check_diff
+        run: |
+          git add version_badge.json
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check if author is allowed to update
+        id: check_author
+        run: |
+          if [[ "${{ github.actor }}" == "JeongHan-Bae" ]]; then
+            echo "authorized=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Not authorized to commit. Actor is ${{ github.actor }}."
+            echo "authorized=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Exit if not changed or unauthorized
+        if: >
+          steps.check_diff.outputs.changed != 'true' ||
+          steps.check_author.outputs.authorized != 'true'
+        run: |
+          echo "Skipping update due to no generated changes or unauthorized actor."
+          exit 0
+
+      - name: Extract project version from version badge
+        id: version
+        run: |
+          version=$(python -c 'import json; print(json.load(open("version_badge.json", encoding="utf-8"))["message"])')
+          echo "project_version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up SSH signing key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_SIGNING_KEY }}" > ~/.ssh/id_ed25519_signing
+          chmod 600 ~/.ssh/id_ed25519_signing
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519_signing
+
+      - name: Configure Git for signed commits
+        run: |
+          git config --global gpg.format ssh
+          git config --global user.signingkey ~/.ssh/id_ed25519_signing
+          git config --global commit.gpgsign true
+          git config --global user.name "JeongHan-Bae"
+          git config --global user.email "mastropseudo@gmail.com"
+
+      - name: Commit and push version files
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git add version_badge.json
+          git commit -S -m "auto-update(version): ${{ steps.version.outputs.project_version }}" || echo "No commit needed"
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git || echo "No changes to push"
