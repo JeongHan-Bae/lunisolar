@@ -8,6 +8,7 @@ on:
       - "include/lunisolar.h"
       - "scripts/gen_version_badge.py"
       - ".github/workflows/update-version.yaml"
+  workflow_dispatch:
 
 jobs:
   update-version:
