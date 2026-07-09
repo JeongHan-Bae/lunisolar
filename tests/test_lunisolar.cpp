@@ -3,6 +3,8 @@
 #include <chrono>
 #include <cstdint>
 #include <iostream>
+#include <format>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -41,6 +43,101 @@ namespace {
             unsigned physical_index
     ) noexcept {
         return ((month_bits >> physical_index) & 1U) != 0U ? 30U : 29U;
+    }
+
+    [[nodiscard]] std::optional<lunisolar::solar_term_date_info>
+    naive_previous_solar_term(lunisolar::gregorian_date date) {
+        const auto current = lunisolar::detail::to_sys_days(date);
+
+        bool found = false;
+        lunisolar::solar_term_date_info best{};
+        auto best_day = Calendar::sys_days{};
+
+        for (int year = date.year - 1; year <= date.year; ++year) {
+            if (!Calendar::supports_gregorian_year(year)) {
+                continue;
+            }
+
+            for (unsigned i = 0; i < lunisolar::solar_term_count; ++i) {
+                const auto term = static_cast<lunisolar::solar_term>(i);
+                const auto term_date = Calendar::solar_term_date(year, term);
+                assert(term_date);
+
+                const auto candidate_day = lunisolar::detail::to_sys_days(term_date.value);
+                if (candidate_day <= current &&
+                    (!found || candidate_day > best_day)) {
+                    found = true;
+                    best = {term, term_date.value};
+                    best_day = candidate_day;
+                }
+            }
+        }
+
+        if (!found) {
+            return std::nullopt;
+        }
+
+        return best;
+    }
+
+    [[nodiscard]] std::optional<lunisolar::solar_term_date_info>
+    naive_next_solar_term(lunisolar::gregorian_date date) {
+        const auto current = lunisolar::detail::to_sys_days(date);
+
+        bool found = false;
+        lunisolar::solar_term_date_info best{};
+        auto best_day = Calendar::sys_days{};
+
+        for (int year = date.year; year <= date.year + 1; ++year) {
+            if (!Calendar::supports_gregorian_year(year)) {
+                continue;
+            }
+
+            for (unsigned i = 0; i < lunisolar::solar_term_count; ++i) {
+                const auto term = static_cast<lunisolar::solar_term>(i);
+                const auto term_date = Calendar::solar_term_date(year, term);
+                assert(term_date);
+
+                const auto candidate_day = lunisolar::detail::to_sys_days(term_date.value);
+                if (candidate_day >= current &&
+                    (!found || candidate_day < best_day)) {
+                    found = true;
+                    best = {term, term_date.value};
+                    best_day = candidate_day;
+                }
+            }
+        }
+
+        if (!found) {
+            return std::nullopt;
+        }
+
+        return best;
+    }
+
+    [[nodiscard]] std::optional<lunisolar::solar_term_date_info>
+    naive_nearest_solar_term(lunisolar::gregorian_date date) {
+        const auto previous = naive_previous_solar_term(date);
+        const auto next = naive_next_solar_term(date);
+
+        if (previous && next) {
+            const auto current = lunisolar::detail::to_sys_days(date);
+            const auto previous_distance =
+                    (current - lunisolar::detail::to_sys_days(previous->date)).count();
+            const auto next_distance =
+                    (lunisolar::detail::to_sys_days(next->date) - current).count();
+            return previous_distance <= next_distance ? previous : next;
+        }
+
+        if (previous) {
+            return previous;
+        }
+
+        if (next) {
+            return next;
+        }
+
+        return std::nullopt;
     }
 
     void test_packed_data_layout() {
@@ -98,6 +195,25 @@ namespace {
                 assert(((month_bits >> 12U) & 1U) == 0U);
             }
         }
+    }
+
+    void test_version_metadata() {
+        static_assert(lunisolar::meta::major == 0);
+        static_assert(lunisolar::meta::minor == 0);
+        static_assert(lunisolar::meta::patch == 1);
+
+        assert(lunisolar::meta::major == 0);
+        assert(lunisolar::meta::minor == 0);
+        assert(lunisolar::meta::patch == 1);
+
+        const auto expected = std::format(
+                "{}.{}.{}",
+                lunisolar::meta::major,
+                lunisolar::meta::minor,
+                lunisolar::meta::patch
+        );
+
+        assert(lunisolar::meta::version == expected);
     }
 
     void test_calendar_matches_packed_data() {
@@ -485,6 +601,47 @@ namespace {
             assert(at);
             assert(at.value.year == 2024);
             assert(at.value.month == 11);
+        }
+    }
+
+    void test_neighboring_solar_term_apis() {
+        const auto first = lunisolar::detail::to_sys_days(Calendar::first_gregorian_date());
+        const auto last = lunisolar::detail::to_sys_days(Calendar::last_gregorian_date());
+
+        for (auto day = first; day <= last; day += std::chrono::days{1}) {
+            const auto date = lunisolar::detail::from_sys_days(day);
+
+            const auto previous = Calendar::previous_solar_term(date);
+            const auto nearest = Calendar::nearest_solar_term(date);
+            const auto next = Calendar::next_solar_term(date);
+
+            const auto naive_previous = naive_previous_solar_term(date);
+            const auto naive_nearest = naive_nearest_solar_term(date);
+            const auto naive_next = naive_next_solar_term(date);
+
+            if (naive_previous) {
+                assert(previous);
+                assert(previous.value == *naive_previous);
+            } else {
+                assert(!previous);
+                assert(previous.ec == lunisolar::error::year_out_of_range);
+            }
+
+            if (naive_nearest) {
+                assert(nearest);
+                assert(nearest.value == *naive_nearest);
+            } else {
+                assert(!nearest);
+                assert(nearest.ec == lunisolar::error::year_out_of_range);
+            }
+
+            if (naive_next) {
+                assert(next);
+                assert(next.value == *naive_next);
+            } else {
+                assert(!next);
+                assert(next.ec == lunisolar::error::year_out_of_range);
+            }
         }
     }
 
@@ -1084,12 +1241,44 @@ namespace {
 
             assert((value == type{2025, 12}));
         }
+
+        {
+            using type = lunisolar::solar_term_date_info;
+
+            static_assert(std::tuple_size_v<type> == 2);
+            static_assert(std::is_same_v<
+                    std::tuple_element_t<0, type>,
+                    lunisolar::solar_term
+            >);
+            static_assert(std::is_same_v<
+                    std::tuple_element_t<1, type>,
+                    lunisolar::gregorian_date
+            >);
+
+            type value{lunisolar::solar_term::lichun, {2024, 2, 4}};
+
+            assert(lunisolar::get<0>(value) == lunisolar::solar_term::lichun);
+            assert((lunisolar::get<1>(value) == lunisolar::gregorian_date{2024, 2, 4}));
+
+            auto [term, date] = value;
+            assert(term == value.term);
+            assert(date == value.date);
+
+            lunisolar::get<0>(value) = lunisolar::solar_term::yushui;
+            lunisolar::get<1>(value) = lunisolar::gregorian_date{2024, 2, 19};
+
+            assert((value == type{
+                    lunisolar::solar_term::yushui,
+                    {2024, 2, 19}
+            }));
+        }
     }
 
 } // namespace
 
 int main() {
     test_packed_data_layout();
+    test_version_metadata();
     test_calendar_matches_packed_data();
     test_full_round_trip_every_supported_day();
     test_boundaries();
@@ -1098,6 +1287,7 @@ int main() {
 
     test_solar_term_offsets();
     test_known_solar_terms();
+    test_neighboring_solar_term_apis();
     test_solar_term_year_month();
 
     test_ganzhi();
