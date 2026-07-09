@@ -65,14 +65,41 @@ jobs:
           version=$(python -c 'import json; print(json.load(open("version_badge.json", encoding="utf-8"))["message"])')
           echo "project_version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Set up SSH signing key
+      - name: Set up SSH keys
+        env:
+          SSH_SIGNING_KEY: ${{ secrets.SSH_SIGNING_KEY }}
+          SSH_AUTH_KEY: ${{ secrets.SSH_AUTH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_SIGNING_KEY }}" > ~/.ssh/id_ed25519_signing
+
+          if [ -z "$SSH_SIGNING_KEY" ]; then
+            echo "SSH_SIGNING_KEY is empty"
+            exit 1
+          fi
+
+          if [ -z "$SSH_AUTH_KEY" ]; then
+            echo "SSH_AUTH_KEY is empty"
+            exit 1
+          fi
+
+          printf '%s\n' "$SSH_SIGNING_KEY" | tr -d '\r' > ~/.ssh/id_ed25519_signing
+          printf '%s\n' "$SSH_AUTH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519_github_actions
+
           chmod 600 ~/.ssh/id_ed25519_signing
+          chmod 600 ~/.ssh/id_ed25519_github_actions
+
+          ssh-keygen -y -f ~/.ssh/id_ed25519_signing > ~/.ssh/id_ed25519_signing.pub
+
+          cat > ~/.ssh/config <<'EOF'
+          Host github.com
+            HostName github.com
+            User git
+            IdentityFile ~/.ssh/id_ed25519_github_actions
+            IdentitiesOnly yes
+          EOF
+
           ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_ed25519_signing
+          ssh -T git@github.com || true
 
       - name: Configure Git for signed commits
         run: |
@@ -83,9 +110,7 @@ jobs:
           git config --global user.email "mastropseudo@gmail.com"
 
       - name: Commit and push version files
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git add version_badge.json
-          git commit -S -m "auto-update(version): ${{ steps.version.outputs.project_version }}" || echo "No commit needed"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git || echo "No changes to push"
+          git commit -S -m "auto-update(version): ${{ steps.version.outputs.project_version }}"
+          git push git@github.com:${{ github.repository }}.git
