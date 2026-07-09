@@ -2,9 +2,11 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 VENV_DIR="$ROOT_DIR/.venv"
 PYTHON_BIN="$VENV_DIR/bin/python"
+REQ_PATH="$SCRIPT_DIR/requirements.txt"
 
 cd "$ROOT_DIR"
 
@@ -18,11 +20,14 @@ if [[ ! -x "$PYTHON_BIN" ]]; then
   exit 1
 fi
 
-"$PYTHON_BIN" -m pip install --upgrade pip
+if [[ ! -f "$REQ_PATH" ]]; then
+  echo "Generator requirements file not found: $REQ_PATH" >&2
+  exit 1
+fi
 
-if ! "$PYTHON_BIN" -c "import sxtwl" >/dev/null 2>&1; then
-  echo "Installing sxtwl into $VENV_DIR"
-  "$PYTHON_BIN" -m pip install sxtwl
+if ! "$PYTHON_BIN" -m pip install --disable-pip-version-check -r "$REQ_PATH"; then
+  echo "Failed to install generator dependencies from $REQ_PATH" >&2
+  exit 1
 fi
 
 GEN_ARGS=()

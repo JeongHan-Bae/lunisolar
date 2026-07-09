@@ -240,14 +240,17 @@ lunisolar/
 │   └── test_lunisolar.cpp      # tests proving packed data and runtime decoding stay faithful to the source data
 ├── tools/
 │   ├── calendar_source.py      # calendar source interface required by the generator
+│   ├── requirements.txt        # generator dependency metadata
 │   ├── gen_lunisolar_data.py   # core backend-agnostic data packing and validation script
 │   ├── gen_lunisolar_data.sh   # shell wrapper for data generation
 │   └── sxtwl_source.py         # optional CalendarSource implementation backed by sxtwl
+├── .gitattributes
 ├── .gitignore
 ├── AGENTS.md
 ├── CMakeLists.txt
 ├── LICENSE
-└── README.md
+├── README.md
+└── version_badge.json
 ```
 
 ## Build
@@ -260,11 +263,29 @@ Generated data is produced by:
 bash tools/gen_lunisolar_data.sh
 ```
 
-The shell wrapper installs dependencies if needed and then runs `tools/gen_lunisolar_data.py` with the repository
-defaults.
+The shell wrapper installs generator dependencies declared in `tools/requirements.txt`, then runs
+`tools/gen_lunisolar_data.py` with repository defaults. It forwards arbitrary command-line arguments, so the explicit
+generation parameters can be passed through the same command:
 
-Compared with the shell wrapper, `tools/gen_lunisolar_data.py` additionally supports passing explicit generation
-parameters such as the supported year range and output paths.
+```bash
+bash tools/gen_lunisolar_data.sh --first-year 1900 --last-year 2300 --source-module my_source --source-class MySource
+```
+
+You can also call the Python generator directly:
+
+```bash
+python tools/gen_lunisolar_data.py --out generated/lunisolar_data.h --first-year 1900 --last-year 2300
+```
+
+These arguments now include:
+
+- `--out`: output header path
+- `--test-vectors` / `--no-test-vectors`: control test-vector include generation
+- `--first-year` / `--last-year`: supported Chinese year range
+- `--source-module` / `--source-class`: choose a CalendarSource implementation
+
+To replace the backend, add a backend's install requirements to `tools/requirements.txt` and pass the implementation
+class/module via `--source-module` and `--source-class`.
 
 ## Generator Backends
 
@@ -272,6 +293,13 @@ The Python generation pipeline is designed around a pluggable source interface r
 `tools/calendar_source.py` defines the interface expected by the generator, and the core script
 `tools/gen_lunisolar_data.py` handles the packing, validation, and artifact emission once a source object satisfies that
 interface.
+
+This generator framework is fully decoupled from concrete implementations. It does not depend on any specific calendar
+backend package by itself; only the source implementation package (the default `sxtwl` binding or any custom one you provide)
+adds runtime dependencies. To use another implementation, implement `tools/calendar_source.py`, add its install requirements to
+`tools/requirements.txt`, and use `--source-module` / `--source-class` when running `tools/gen_lunisolar_data.sh`. This replaces the
+runtime backend without changing any other project files. The generator runner (`tools/gen_lunisolar_data.sh`) and decoder
+entrypoint (`include/lunisolar.h`) remain directly usable.
 
 In other words, the core script's job is data compression and validation. If a provided class can supply:
 
