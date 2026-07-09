@@ -225,19 +225,24 @@ int main() {
 lunisolar/
 ├── .github/
 │   └── workflows/
-│       └── ci.yaml           # GitHub Actions CI workflow
+│       ├── ci.yaml             # GitHub Actions CI workflow
+│       └── update-version.yaml # workflow for updating version badge metadata
+├── docs/
+│   └── api.md                  # public API reference
 ├── examples/
-│   ├── birthdays.cpp         # example: map one Chinese birthday across many Chinese years
-│   └── solar_terms.cpp       # example: sample moon-phase-style output and nearby solar terms
+│   ├── birthdays.cpp           # example: map one Chinese birthday across many Chinese years
+│   └── solar_terms.cpp         # example: sample moon-phase-style output and nearby solar terms
 ├── include/
-│   └── lunisolar.h           # main header-only library interface
+│   └── lunisolar.h             # main header-only library interface
+├── scripts/
+│   └── gen_version_badge.py    # generate version_badge.json from header metadata
 ├── tests/
-│   └── test_lunisolar.cpp    # tests proving packed data and runtime decoding stay faithful to the source data
+│   └── test_lunisolar.cpp      # tests proving packed data and runtime decoding stay faithful to the source data
 ├── tools/
-│   ├── calendar_source.py    # calendar source interface required by the generator
-│   ├── gen_lunisolar_data.py # core backend-agnostic data packing and validation script
-│   ├── gen_lunisolar_data.sh # shell wrapper for data generation
-│   └── sxtwl_source.py       # optional CalendarSource implementation backed by sxtwl
+│   ├── calendar_source.py      # calendar source interface required by the generator
+│   ├── gen_lunisolar_data.py   # core backend-agnostic data packing and validation script
+│   ├── gen_lunisolar_data.sh   # shell wrapper for data generation
+│   └── sxtwl_source.py         # optional CalendarSource implementation backed by sxtwl
 ├── .gitignore
 ├── AGENTS.md
 ├── CMakeLists.txt
@@ -289,4 +294,4 @@ the library's calculations remain faithful to the underlying source data used to
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+This project is licensed under the MIT License. See [LICENSE](https://github.com/JeongHan-Bae/lunisolar?tab=MIT-1-ov-file).

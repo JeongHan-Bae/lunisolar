@@ -25,6 +25,33 @@ if ! "$PYTHON_BIN" -c "import sxtwl" >/dev/null 2>&1; then
   "$PYTHON_BIN" -m pip install sxtwl
 fi
 
-"$PYTHON_BIN" tools/gen_lunisolar_data.py \
-  --out include/lunisolar_data.h \
-  --test-vectors tests/lunisolar_vectors.inc
+GEN_ARGS=()
+
+if [[ $# -gt 0 ]]; then
+  GEN_ARGS+=("$@")
+fi
+
+has_arg() {
+  local name="$1"
+  shift || true
+
+  local arg
+  for arg in "$@"; do
+    if [[ "$arg" == "$name" || "$arg" == "$name="* ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+if ! has_arg "--out" "${GEN_ARGS[@]+"${GEN_ARGS[@]}"}"; then
+  GEN_ARGS+=(--out include/lunisolar_data.h)
+fi
+
+if ! has_arg "--test-vectors" "${GEN_ARGS[@]+"${GEN_ARGS[@]}"}" \
+  && ! has_arg "--no-test-vectors" "${GEN_ARGS[@]+"${GEN_ARGS[@]}"}"; then
+  GEN_ARGS+=(--test-vectors tests/lunisolar_vectors.inc)
+fi
+
+"$PYTHON_BIN" tools/gen_lunisolar_data.py "${GEN_ARGS[@]}"
