@@ -11,16 +11,18 @@ artifacts used by the project. Its primary outputs are the includable
 """
 
 import argparse
+import importlib
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Iterable
 
 from calendar_source import CalendarSource, LunarDay
-from sxtwl_source import SxtwlSource
 
 DEFAULT_FIRST_YEAR = 1715
 DEFAULT_LAST_YEAR = 2226
+DEFAULT_SOURCE_MODULE = "sxtwl_source"
+DEFAULT_SOURCE_CLASS = "SxtwlSource"
 
 SOLAR_TERM_ORDER: list[str] = [
     "立春", "雨水", "惊蛰", "春分", "清明", "谷雨",
@@ -271,6 +273,26 @@ def decode_packed_year(value: int) -> tuple[int, int, int, int]:
     new_year_day = (value >> 17) & 0x1FF
     year_length = (value >> 26) & 0x1FF
     return month_bits, leap_month, new_year_day, year_length
+
+
+def load_calendar_source(module_name: str, class_name: str) -> CalendarSource:
+    """Load and instantiate a calendar source implementation dynamically."""
+
+    module = importlib.import_module(module_name)
+
+    try:
+        source_class = getattr(module, class_name)
+    except AttributeError as exc:
+        raise RuntimeError(
+            f"calendar source class {class_name!r} not found in module {module_name!r}"
+        ) from exc
+
+    source = source_class()
+
+    if not isinstance(source, CalendarSource):
+        raise TypeError(f"{module_name}.{class_name} must implement CalendarSource")
+
+    return source
 
 
 def physical_month_count(leap_month: int) -> int:
@@ -777,9 +799,25 @@ def main() -> None:
         help=f"last supported Chinese year, default: {DEFAULT_LAST_YEAR}",
     )
     parser.add_argument(
+        "--source-module",
+        default=DEFAULT_SOURCE_MODULE,
+        help=f"calendar source module, default: {DEFAULT_SOURCE_MODULE}",
+    )
+    parser.add_argument(
+        "--source-class",
+        default=DEFAULT_SOURCE_CLASS,
+        help=f"calendar source class, default: {DEFAULT_SOURCE_CLASS}",
+    )
+    test_vector_group = parser.add_mutually_exclusive_group()
+    test_vector_group.add_argument(
         "--test-vectors",
         required=False,
         help="output path for generated test vectors include",
+    )
+    test_vector_group.add_argument(
+        "--no-test-vectors",
+        action="store_true",
+        help="do not generate test vectors",
     )
     args = parser.parse_args()
 
@@ -787,7 +825,7 @@ def main() -> None:
     last_year = args.last_year
     validate_year_range(first_year, last_year)
 
-    source = SxtwlSource()
+    source = load_calendar_source(args.source_module, args.source_class)
 
     lunar_table = [
         pack_year(source, year) for year in range(first_year, last_year + 1)
@@ -812,7 +850,7 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    if args.test_vectors:
+    if args.test_vectors and not args.no_test_vectors:
         vectors_text, count_text = emit_test_vectors(source, first_year, last_year)
         vectors_path = Path(args.test_vectors)
         vectors_path.parent.mkdir(parents=True, exist_ok=True)
@@ -824,7 +862,7 @@ def main() -> None:
         count_path.write_text(count_text, encoding="utf-8")
 
     print(f"generated {out}")
-    if args.test_vectors:
+    if args.test_vectors and not args.no_test_vectors:
         print(f"generated {args.test_vectors}")
     print(f"supported Chinese years: {first_year}..{last_year}")
     print(

@@ -355,17 +355,20 @@ Return Gregorian date on which a specific solar term occurs.
 ```cpp
 static constexpr result<solar_term_date_info> previous_solar_term(gregorian_date date) noexcept;
 ```
-Return the nearest prior solar term record.
+Return the latest solar term whose Gregorian date is not later than `date`.
+If `date` is exactly on a solar-term date, this returns that same term.
 
 ```cpp
 static constexpr result<solar_term_date_info> next_solar_term(gregorian_date date) noexcept;
 ```
-Return the nearest following solar term record.
+Return the earliest solar term whose Gregorian date is not earlier than `date`.
+If `date` is exactly on a solar-term date, this returns that same term.
 
 ```cpp
 static constexpr result<solar_term_date_info> nearest_solar_term(gregorian_date date) noexcept;
 ```
-Return the closer of previous and next terms, and choose previous when equidistant.
+Return the closer of previous and next terms by whole-day Gregorian date distance.
+If equally distant, the earlier term is returned.
 
 ```cpp
 static constexpr result<solar_term_year_month> solar_term_year_month_of(gregorian_date date) noexcept;
@@ -416,6 +419,12 @@ are provided for:
 
 - `chinese_date`, `gregorian_date`, `local_date_time_parts`,
   `four_pillars`, `four_pillars_text`, `solar_term_year_month`, `solar_term_date_info`.
+
+`solar_term_date_info` is tuple-mappable as:
+
+```
+auto [term, date] = solar_term_info;
+```
 
 This allows:
 

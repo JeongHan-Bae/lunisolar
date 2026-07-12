@@ -112,7 +112,20 @@ namespace {
             std::cout << " (leap month)";
         }
 
+        std::cout << "\n";
+
+        const auto nearest_term = Calendar::nearest_solar_term(original_birthday);
+        if (!nearest_term) {
+            std::cerr << "Failed to resolve nearest solar term for author's birthday.\n";
+            return false;
+        }
+
+        std::cout << "Nearest solar term for Author's birthday: "
+                  << lunisolar::to_string(nearest_term.value.term, lunisolar::text_style::hant_cn)
+                  << " -> ";
+        print_gregorian_date(nearest_term.value.date);
         std::cout << "\n\n";
+
         std::cout << "Gregorian birthdays for Chinese years "
                   << first_chinese_year
                   << " to "

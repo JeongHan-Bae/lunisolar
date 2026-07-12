@@ -68,14 +68,26 @@ def parse_args() -> argparse.Namespace:
         default="lunisolar",
         help="badge label; default: lunisolar",
     )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="print the project version instead of generating the badge JSON",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     version = read_meta_version(args.header)
-    badge = build_badge(version, args.label)
-    args.out.write_text(json.dumps(badge, indent=2) + "\n", encoding="utf-8")
+
+    if not args.version:
+        badge = build_badge(version, args.label)
+        args.out.write_text(
+            json.dumps(badge, indent=2) + "\n",
+            encoding="utf-8",
+            )
+    else:
+        print("{}.{}.{}".format(*version))
 
 
 if __name__ == "__main__":
