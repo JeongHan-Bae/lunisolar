@@ -54,6 +54,19 @@ Here, `lunisolar` specifically means the Chinese lunisolar calendar, that is, th
 called the Chinese lunar calendar (`nongli`). It does not mean a purely lunar calendar in the literal sense, such as the
 Islamic calendar.
 
+`lunisolar` is a practical conversion library for Chinese lunisolar date structures.
+
+It supports two-way calendrical structure mapping:
+
+- Gregorian date structure -> Chinese lunisolar date structure
+- Chinese lunisolar date structure -> Gregorian date structure
+
+The library is designed for practical date-time usage grounded in standardized and scientifically consistent calendrical rules.
+
+Four Pillars (`四柱/사주/sizhu`) metadata helpers are also provided.
+These helpers are for calendrical metadata and must not be interpreted as `bazi` (`八字`) or connected to fortune-telling.
+It explicitly rejects feudal superstition in its usage and documentation boundaries.
+
 ### Why "Lunisolar"
 
 For readers unfamiliar with the Latin roots, `lunisolar` literally means a calendar defined by both the moon and the
@@ -156,6 +169,15 @@ In short: no i18n.
 
 Checked conversion and lookup APIs return `lunisolar::result<T>`.
 
+## API Documentation
+
+Detailed API references are collected in [`docs/api.md`](docs/api.md), including:
+
+- public function signatures and availability
+- core data structures (`chinese_date`, `gregorian_date`, and related types)
+- `solar_term_date_info` and tuple-structured binding behavior
+- supported usage patterns and practical notes from tests/examples
+
 ### Error Model
 
 All core calendrical conversion, lookup, validation, local-time extraction, and Four Pillars computation APIs are
@@ -226,6 +248,7 @@ lunisolar/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yaml             # GitHub Actions CI workflow
+│       ├── release.yaml        # release workflow for extra package artifacts
 │       └── update-version.yaml # workflow for updating version badge metadata
 ├── docs/
 │   └── api.md                  # public API reference
@@ -252,6 +275,15 @@ lunisolar/
 ├── README.md
 └── version_badge.json
 ```
+
+## Release Packaging
+
+`.github/workflows/release.yaml` is the dedicated workflow for creating extra release artifacts.
+
+At release time, in addition to the GitHub project package, two extra packages are attached:
+
+- `lunisolar-headers-<version>.tar.gz` (only `include/lunisolar.h` and `include/lunisolar_data.h`)
+- `lunisolar-example-<version>.tar.gz` (full example set: `include/`, `tests/`, `examples/`, and `CMakeLists.txt`)
 
 ## Build
 
@@ -319,6 +351,18 @@ The tests are intended to show two things:
 
 This means the test suite is not just checking surface examples. It is also validating that the compression pipeline and
 the library's calculations remain faithful to the underlying source data used to generate the tables.
+
+## Calendrical and Governance Notes
+
+This project uses the Chinese lunisolar calendar and operates in full conformance with `GB/T 33661-2017`.
+The implementation follows the standardized Chinese lunisolar calendrical framework, a calendar system tied to lunar
+phases and solar terms for aligning the year with the seasonal cycle.
+
+The Four Pillars service is a simplified practical variant intended for everyday date-time interaction.
+It is a calendrical metadata feature only; it must not be interpreted as `bazi` (`八字`) or fortune-telling content.
+
+The library is for practical, daily-life date-time usage grounded in standardized and scientifically consistent calendrical rules.
+It does not provide astrology, geomancy, or any divination workflow, and explicitly rejects feudal superstition.
 
 ## License
 

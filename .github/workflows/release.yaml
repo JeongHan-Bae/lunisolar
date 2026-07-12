@@ -1,0 +1,115 @@
+name: Release Packages
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+
+jobs:
+  release-packages:
+    name: Build and Upload Release Packages
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Extract project version
+        id: version
+        run: |
+          raw_version="$(python scripts/gen_version_badge.py --version)"
+          project_version="v${raw_version#v}"
+          
+          echo "project_version=${project_version}" >> "$GITHUB_OUTPUT"
+          echo "Detected project version: ${project_version}"
+
+      - name: Generate lunisolar data
+        run: |
+          rm -f include/lunisolar_data.h tests/lunisolar_vectors.inc tests/lunisolar_vectors_count.inc
+          bash tools/gen_lunisolar_data.sh
+
+      - name: Verify generated files
+        run: |
+          test -s include/lunisolar.h
+          test -s include/lunisolar_data.h
+          test -s tests/test_lunisolar.cpp
+          test -s tests/lunisolar_vectors.inc
+          test -s tests/lunisolar_vectors_count.inc
+          test -d examples
+          test -s CMakeLists.txt
+
+      - name: Prepare header package
+        env:
+          PROJECT_VERSION: ${{ steps.version.outputs.project_version }}
+        run: |
+          package_root="lunisolar-${PROJECT_VERSION}"
+          staging_root="dist/header"
+          staging_dir="${staging_root}/${package_root}"
+          archive_path="dist/lunisolar-headers-${PROJECT_VERSION}.tar.gz"
+          
+          rm -rf "${staging_root}"
+          mkdir -p "${staging_dir}/include"
+          
+          cp include/lunisolar.h "${staging_dir}/include/"
+          cp include/lunisolar_data.h "${staging_dir}/include/"
+          
+          tar \
+            -czf "${archive_path}" \
+            -C "${staging_root}" \
+            "${package_root}"
+
+      - name: Prepare full example package
+        env:
+          PROJECT_VERSION: ${{ steps.version.outputs.project_version }}
+        run: |
+          package_root="lunisolar-${PROJECT_VERSION}"
+          staging_root="dist/example"
+          staging_dir="${staging_root}/${package_root}"
+          archive_path="dist/lunisolar-example-${PROJECT_VERSION}.tar.gz"
+          
+          rm -rf "${staging_root}"
+          mkdir -p "${staging_dir}"
+          
+          cp -R include "${staging_dir}/"
+          cp -R tests "${staging_dir}/"
+          cp -R examples "${staging_dir}/"
+          cp CMakeLists.txt "${staging_dir}/"
+          
+          tar \
+            -czf "${archive_path}" \
+            -C "${staging_root}" \
+            "${package_root}"
+
+      - name: Inspect generated packages
+        env:
+          PROJECT_VERSION: ${{ steps.version.outputs.project_version }}
+        run: |
+          header_archive="dist/lunisolar-headers-${PROJECT_VERSION}.tar.gz"
+          example_archive="dist/lunisolar-example-${PROJECT_VERSION}.tar.gz"
+          
+          echo "Header package contents:"
+          tar -tzf "${header_archive}"
+          
+          echo
+          echo "Example package contents:"
+          tar -tzf "${example_archive}"
+          
+          echo
+          echo "Package sizes:"
+          ls -lh "${header_archive}" "${example_archive}"
+
+      - name: Upload packages to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/lunisolar-headers-${{ steps.version.outputs.project_version }}.tar.gz
+            dist/lunisolar-example-${{ steps.version.outputs.project_version }}.tar.gz
+          fail_on_unmatched_files: true

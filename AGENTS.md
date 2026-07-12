@@ -2,6 +2,13 @@
 
 This repository expects concise, disciplined English-only collaboration for commits and pull requests.
 
+## Terminology Policy
+
+Contributors and documenters must not interpret or document the `Four Pillars` feature set using the term `bazi` (`八字`)
+or astrology/divination-style framing.
+Use `Four Pillars` (`四柱/사주/sizhu`) only as a calendrical metadata context for supported Gregorian/Chinese lunisolar
+conversions.
+
 ## Tooling Policy
 
 For generator tooling under `tools/`, dependency management must use `tools/requirements.txt` only and should be treated as
@@ -23,6 +30,13 @@ bootstrapping because each of the following is unfriendly in this context:
 - adding extra third-party bootstrap dependencies beyond the standard library
 
 `pyproject.toml` remains supported for actual project/package management only, where packaging is the intended use case.
+
+## Documentation Link Policy
+
+Do not use system filesystem absolute paths when referencing repository files in documentation, comments, or PR descriptions.
+Allowed path styles are:
+- repository-relative paths (for example: `README.md`, `docs/api.md`, `include/lunisolar.h`)
+- web URLs.
 
 ## Branch Naming
 
