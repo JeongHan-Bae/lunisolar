@@ -112,5 +112,9 @@ jobs:
       - name: Commit and push version files
         run: |
           git add version_badge.json
+          if git diff --cached --quiet; then
+            echo "No version file changes to commit."
+            exit 0
+          fi
           git commit -S -m "auto-update(version): ${{ steps.version.outputs.project_version }}"
           git push git@github.com:${{ github.repository }}.git
